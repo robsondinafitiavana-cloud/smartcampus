@@ -1,0 +1,40 @@
+:root {
+  /* Palette principale - Vert émeraude + Blanc cassé + Or */
+  --primary:       #064e3b;
+  --primary-2:     #065f46;
+  --primary-3:     #047857;
+  --accent:        #10b981;
+  --accent-2:      #34d399;
+  --gold:          #f59e0b;
+  --gold-2:        #fbbf24;
+
+  /* Statuts */
+  --success:    #10b981;  --success-bg: #ecfdf5;
+  --warning:    #f59e0b;  --warning-bg: #fffbeb;
+  --danger:     #ef4444;  --danger-bg:  #fef2f2;
+  --info:       #3b82f6;  --info-bg:    #eff6ff;
+
+  /* Neutres chauds */
+  --gray-50:  #fafaf9;
+  --gray-100: #f5f5f4;
+  --gray-200: #e7e5e4;
+  --gray-300: #d6d3d1;
+  --gray-400: #a8a29e;
+  --gray-500: #78716c;
+  --gray-600: #57534e;
+  --gray-700: #44403c;
+  --gray-800: #292524;
+  --gray-900: #1c1917;
+
+  --bg-app:   #f5f5f4;
+  --bg-card:  #ffffff;
+  --sidebar-w:280px;
+  --font:'Inter','Segoe UI',system-ui,sans-serif;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
+  --shadow:    0 4px 6px -1px rgba(0,0,0,0.07),0 2px 4px -1px rgba(0,0,0,0.04);
+  --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.07),0 4px 6px -2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.08),0 10px 10px -5px rgba(0,0,0,0.03);
+
+  --r-sm:4px; --r:8px; --r-md:12px; --r-lg:16px; --r-xl:24px;
+}

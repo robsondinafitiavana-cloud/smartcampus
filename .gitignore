@@ -1,0 +1,17 @@
+﻿# Python - fichiers compilés inutiles
+__pycache__/
+*.pyc
+*.pyo
+
+# Django - base de données locale
+*.sqlite3
+backend/media/
+
+# Node.js - dossier très lourd (500MB+)
+frontend/node_modules/
+frontend/build/
+
+# Fichiers système Windows/Mac
+.DS_Store
+Thumbs.db
+*.log

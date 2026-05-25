@@ -1,0 +1,152 @@
+PS C:\Users\DinaFitiavana\smartcampus\frontend> cd ..
+PS C:\Users\DinaFitiavana\smartcampus> psql -U postgres -c "CREATE DATABASE smartcampus_db;"
+Password for user postgres: 
+
+CREATE DATABASE
+PS C:\Users\DinaFitiavana\smartcampus> psql -U postgres -d smarcampus_db -f schema.sql      
+Password for user postgres: 
+
+psql: error: connection to server at "localhost" (::1), port 5432 failed: FATAL:  la base de données « smarcampus_db » n'existe pas
+PS C:\Users\DinaFitiavana\smartcampus> psql -U postgres -d smartcampus_db -f schema.sql
+Password for user postgres: 
+
+psql:schema.sql:13: NOTICE:  la table « devoirs_soumissions » n'existe pas, poursuite du traitement
+DROP TABLE
+psql:schema.sql:14: NOTICE:  la table « devoirs » n'existe pas, poursuite du traitement
+DROP TABLE
+psql:schema.sql:15: NOTICE:  la table « annonces » n'existe pas, poursuite du traitement
+DROP TABLE
+psql:schema.sql:16: NOTICE:  la table « paiements » n'existe pas, poursuite du traitement
+DROP TABLE
+psql:schema.sql:17: NOTICE:  la table « presences » n'existe pas, poursuite du traitement
+DROP TABLE
+psql:schema.sql:18: NOTICE:  la table « notes » n'existe pas, poursuite du traitement
+DROP TABLE
+psql:schema.sql:19: NOTICE:  la table « emplois_du_temps » n'existe pas, poursuite du traitement
+DROP TABLE
+psql:schema.sql:20: NOTICE:  la table « inscriptions_cours » n'existe pas, poursuite du traitement
+DROP TABLE
+psql:schema.sql:21: NOTICE:  la table « cours » n'existe pas, poursuite du traitement
+DROP TABLE
+psql:schema.sql:22: NOTICE:  la table « groupes » n'existe pas, poursuite du traitement
+DROP TABLE
+psql:schema.sql:23: NOTICE:  la table « salles » n'existe pas, poursuite du traitement
+DROP TABLE
+psql:schema.sql:24: NOTICE:  la table « etudiants » n'existe pas, poursuite du traitement
+DROP TABLE
+psql:schema.sql:25: NOTICE:  la table « enseignants » n'existe pas, poursuite du traitement
+DROP TABLE
+psql:schema.sql:26: NOTICE:  la table « filieres » n'existe pas, poursuite du traitement
+DROP TABLE
+psql:schema.sql:27: NOTICE:  la table « utilisateurs » n'existe pas, poursuite du traitement
+DROP TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE FUNCTION
+CREATE TRIGGER
+INSERT 0 3
+INSERT 0 4
+INSERT 0 1
+psql:schema.sql:494: ATTENTION:  aucune transaction en cours
+COMMIT
+PS C:\Users\DinaFitiavana\smartcampus> cd backend                                           
+PS C:\Users\DinaFitiavana\smartcampus\backend> python manage.py migrate                             
+Traceback (most recent call last):
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\backends\postgresql\base.py", line 269, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\DinaFitiavana\smartcampus\backend\manage.py", line 22, in <module>
+    main()
+  File "C:\Users\DinaFitiavana\smartcampus\backend\manage.py", line 18, in main
+    execute_from_command_line(sys.argv)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\management\__init__.py", line 436, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\management\base.py", line 412, in run_from_argv
+    self.execute(*args, **cmd_options)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\management\base.py", line 458, in execute
+    output = self.handle(*args, **options)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\management\base.py", line 106, in wrapper
+    res = handle_func(*args, **kwargs)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\management\commands\migrate.py", line 117, in handle
+    executor = MigrationExecutor(connection, self.migration_progress_callback)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\migrations\executor.py", line 18, in __init__
+    self.loader = MigrationLoader(self.connection)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\migrations\loader.py", line 58, in __init__
+    self.build_graph()
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\migrations\loader.py", line 235, in build_graph
+    self.applied_migrations = recorder.applied_migrations()
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\migrations\recorder.py", line 81, in applied_migrations
+    if self.has_table():
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\migrations\recorder.py", line 57, in has_table
+    with self.connection.cursor() as cursor:
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\backends\base\base.py", line 330, in cursor
+    return self._cursor()
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\backends\base\base.py", line 306, in _cursor
+    self.ensure_connection()
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\backends\base\base.py", line 288, in ensure_connection
+    with self.wrap_database_errors:
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\backends\postgresql\base.py", line 269, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Users\DinaFitiavana\AppData\Local\Programs\Python\Python310\lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+django.db.utils.OperationalError
+PS C:\Users\DinaFitiavana\smartcampus\backend>   

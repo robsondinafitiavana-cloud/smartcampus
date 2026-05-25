@@ -1,0 +1,25 @@
+from etudiants.models import Filiere, Groupe
+from presences.models import Salle
+
+# Créer les filières
+f1 = Filiere.objects.create(nom='Informatique', code='INF', description='Licence Informatique')
+f2 = Filiere.objects.create(nom='Gestion', code='GST', description='Licence Gestion')
+f3 = Filiere.objects.create(nom='Droit', code='DRT', description='Licence Droit')
+print('✅ Filières créées:', Filiere.objects.count())
+
+# Créer les groupes
+Groupe.objects.create(filiere=f1, nom='INF-L1-A', niveau='L1', annee_scolaire='2025-2026')
+Groupe.objects.create(filiere=f1, nom='INF-L2-A', niveau='L2', annee_scolaire='2025-2026')
+Groupe.objects.create(filiere=f1, nom='INF-L3-A', niveau='L3', annee_scolaire='2025-2026')
+Groupe.objects.create(filiere=f2, nom='GST-L1-A', niveau='L1', annee_scolaire='2025-2026')
+Groupe.objects.create(filiere=f3, nom='DRT-L1-A', niveau='L1', annee_scolaire='2025-2026')
+print('✅ Groupes créés:', Groupe.objects.count())
+
+# Créer les salles
+Salle.objects.create(nom='Salle A101', capacite=30, type_salle='cours')
+Salle.objects.create(nom='Salle A102', capacite=30, type_salle='cours')
+Salle.objects.create(nom='Amphi 1',   capacite=150, type_salle='amphi')
+Salle.objects.create(nom='Labo Info', capacite=25, type_salle='informatique')
+print('✅ Salles créées:', Salle.objects.count())
+
+exit()
