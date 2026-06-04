@@ -37,29 +37,22 @@ export const authAPI = {
 // MODULE 1 — Étudiants
 // ══════════════════════════════════════════════════════════════
 export const etudiantsAPI = {
-  /** Liste avec filtres optionnels : filiere, niveau, statut, q (recherche) */
   getListe: (params = {}) => api.get('/etudiants/', { params }),
-
-  /** Détail d'un étudiant */
   getUn: (id) => api.get(`/etudiants/${id}/`),
-
-  /** Créer un étudiant + son compte utilisateur */
   creer: (data) => api.post('/etudiants/', data),
-
-  /** Modifier un étudiant */
   modifier: (id, data) => api.patch(`/etudiants/${id}/`, data),
-
-  /** Supprimer */
   supprimer: (id) => api.delete(`/etudiants/${id}/`),
-
-  /** Notes d'un étudiant */
   getNotes: (id) => api.get(`/etudiants/${id}/notes/`),
-
-  /** Taux de présence */
   getTauxPresence: (id) => api.get(`/etudiants/${id}/taux_presence/`),
-
-  /** Situation financière */
   getSituationFinanciere: (id) => api.get(`/etudiants/${id}/situation_financiere/`),
+
+  /** Badge étudiant (données pour PDF) */
+  getBadge: (id) => api.get(`/etudiants/${id}/badge/`),
+
+  /** Upload photo de profil */
+  uploadPhoto: (id, formData) => api.patch(`/etudiants/${id}/`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
 };
 
 // ══════════════════════════════════════════════════════════════
@@ -263,11 +256,4 @@ export const communiquesAPI = {
   /** Supprimer un commentaire */
   supprimerCommentaire: (communiqueId, commentaireId) =>
     api.delete(`/communiques/${communiqueId}/commentaire/${commentaireId}/`),
-    /** Badge étudiant (données pour PDF) */
-  getBadge: (id) => api.get(`/etudiants/${id}/badge/`),
-  
-  /** Upload photo de profil */
-  uploadPhoto: (id, formData) => api.patch(`/etudiants/${id}/`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-}),
 };
