@@ -1,23 +1,92 @@
-import React, { useState, useEffect } from 'react';
-import Layout from '../../components/layout/Layout';
-import Table from '../../components/common/Table';
-import Modal from '../../components/common/Modal';
-import Badge from '../../components/common/Badge';
-import Bouton from '../../components/common/Bouton';
-import Card from '../../components/common/Card';
+import React, { useState, useEffect, useRef } from 'react';
+import Layout    from '../../components/layout/Layout';
+import Table     from '../../components/common/Table';
+import Modal     from '../../components/common/Modal';
+import Badge     from '../../components/common/Badge';
+import Bouton    from '../../components/common/Bouton';
+import Card      from '../../components/common/Card';
 import FormField, { inputStyle } from '../../components/common/FormField';
 import { etudiantsAPI, referenceAPI } from '../../api/services';
-import { couleurStatut, formatDate } from '../../utils/helpers';
+import { couleurStatut, formatDate }  from '../../utils/helpers';
 import { useAuth } from '../../context/AuthContext';
-import { authAPI } from '../../api/services';
 
 const selectStyle = {
   width:'100%', padding:'10px 14px', border:'1.5px solid #e7e5e4',
   borderRadius:'10px', fontSize:'14px', background:'#fafaf9', outline:'none',
 };
 
+// ── Génération du badge PDF côté client ──────
+const genererBadgePDF = async (badge) => {
+  // Utilise jsPDF via CDN (déjà dans index.html) ou import dynamique
+  const { jsPDF } = await import('jspdf');
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:[86,54] }); // taille carte
+
+  // Fond dégradé simulé
+  doc.setFillColor(6, 78, 59); // vert foncé
+  doc.rect(0, 0, 86, 20, 'F');
+
+  // Logo / titre université
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(9);
+  doc.setFont('helvetica','bold');
+  doc.text('SMARTCAMPUS', 43, 8, { align:'center' });
+  doc.setFontSize(7);
+  doc.setFont('helvetica','normal');
+  doc.text('Carte Étudiant', 43, 13, { align:'center' });
+
+  // Photo de profil
+  if (badge.photo_url) {
+    try {
+      doc.addImage(badge.photo_url, 'JPEG', 3, 22, 18, 22);
+    } catch(e) {
+      // Photo non disponible — cercle placeholder
+      doc.setFillColor(229,231,235);
+      doc.circle(12, 33, 9, 'F');
+      doc.setTextColor(156,163,175);
+      doc.setFontSize(14);
+      doc.text('?', 12, 36, { align:'center' });
+    }
+  } else {
+    doc.setFillColor(229,231,235);
+    doc.circle(12, 33, 9, 'F');
+    doc.setTextColor(156,163,175);
+    doc.setFontSize(14);
+    doc.text('👤', 10, 37);
+  }
+
+  // Infos étudiant
+  doc.setTextColor(17,24,39);
+  doc.setFontSize(11);
+  doc.setFont('helvetica','bold');
+  doc.text(`${badge.nom} ${badge.prenom}`, 25, 26);
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(75,85,99);
+  doc.text(`Matricule : ${badge.matricule}`,          25, 32);
+  doc.text(`Filière   : ${badge.filiere || '—'}`,     25, 37);
+  doc.text(`Niveau    : ${badge.niveau}`,             25, 42);
+  doc.text(`Année     : ${badge.annee_scolaire}`,     25, 47);
+
+  // QR Code
+  if (badge.qr_code) {
+    try {
+      const qrSrc = `data:image/png;base64,${badge.qr_code}`;
+      doc.addImage(qrSrc, 'PNG', 68, 22, 16, 16);
+    } catch(e) {}
+  }
+
+  // Bordure
+  doc.setDrawColor(6,78,59);
+  doc.setLineWidth(0.5);
+  doc.rect(0.5, 0.5, 85, 53, 'S');
+
+  doc.save(`badge_${badge.matricule}.pdf`);
+};
+
 const Etudiants = () => {
-  const { estAdmin }    = useAuth();
+  const { estAdmin } = useAuth();
+
   const [etudiants,     setEtudiants]     = useState([]);
   const [filieres,      setFilieres]      = useState([]);
   const [loading,       setLoading]       = useState(true);
@@ -27,10 +96,15 @@ const Etudiants = () => {
   const [modalOuvert,   setModalOuvert]   = useState(false);
   const [modalProfil,   setModalProfil]   = useState(false);
   const [modalModifier, setModalModifier] = useState(false);
+  const [modalBadge,    setModalBadge]    = useState(false);
   const [etudiantActif, setEtudiantActif] = useState(null);
   const [profil,        setProfil]        = useState({});
+  const [badge,         setBadge]         = useState(null);
+  const [badgeLoading,  setBadgeLoading]  = useState(false);
   const [erreurForm,    setErreurForm]    = useState('');
   const [sauvegarde,    setSauvegarde]    = useState(false);
+  const [photoPreview,  setPhotoPreview]  = useState(null);
+  const photoRef = useRef();
 
   const [formulaire, setFormulaire] = useState({
     email:'', mot_de_passe:'', nom:'', prenom:'', sexe:'M',
@@ -39,14 +113,13 @@ const Etudiants = () => {
     niveau:'L1', annee_scolaire:'2025-2026', serie_bacc:'', annee_bacc:'', statut:'actif',
   });
 
-  // Formulaire modification
   const [formModif, setFormModif] = useState({
     nom:'', prenom:'', sexe:'M', contact:'', adresse:'',
     lieu_naissance:'', nationalite:'Malagasy', filiere:'',
     niveau:'L1', statut:'actif', serie_bacc:'', annee_bacc:'',
   });
 
-  const champ = (key, val) => setFormulaire(f => ({...f, [key]:val}));
+  const champ     = (key, val) => setFormulaire(f => ({...f, [key]:val}));
   const champModif = (key, val) => setFormModif(f => ({...f, [key]:val}));
 
   useEffect(() => {
@@ -80,7 +153,31 @@ const Etudiants = () => {
     } catch(e) {}
   };
 
-  // Ouvrir le modal de modification
+  // ── Ouvrir modal badge ───────────────────────
+  const voirBadge = async (etudiant) => {
+    setEtudiantActif(etudiant);
+    setModalBadge(true);
+    setBadgeLoading(true);
+    setBadge(null);
+    try {
+      const res = await etudiantsAPI.getBadge(etudiant.id);
+      setBadge(res.data);
+    } catch(e) {
+      setBadge(null);
+    }
+    setBadgeLoading(false);
+  };
+
+  // ── Télécharger le badge en PDF ──────────────
+  const telechargerBadge = async () => {
+    if (!badge) return;
+    try {
+      await genererBadgePDF(badge);
+    } catch(e) {
+      alert('Erreur génération PDF : ' + e.message);
+    }
+  };
+
   const ouvrirModification = (etudiant) => {
     setEtudiantActif(etudiant);
     setFormModif({
@@ -97,17 +194,38 @@ const Etudiants = () => {
       serie_bacc:     etudiant.serie_bacc     || '',
       annee_bacc:     etudiant.annee_bacc     || '',
     });
+    setPhotoPreview(etudiant.photo || null);
     setModalProfil(false);
     setModalModifier(true);
   };
 
-  // Sauvegarder les modifications
+  // ── Changer la photo de profil ───────────────
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setErreurForm('La photo ne doit pas dépasser 2 Mo');
+      return;
+    }
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
   const handleModifier = async (e) => {
     e.preventDefault();
     setSauvegarde(true); setErreurForm('');
     try {
-      await etudiantsAPI.modifier(etudiantActif.id, formModif);
+      // Si une nouvelle photo a été sélectionnée
+      const fichierPhoto = photoRef.current?.files?.[0];
+      if (fichierPhoto) {
+        const formData = new FormData();
+        Object.entries(formModif).forEach(([k,v]) => { if(v) formData.append(k, v); });
+        formData.append('photo', fichierPhoto);
+        await etudiantsAPI.uploadPhoto(etudiantActif.id, formData);
+      } else {
+        await etudiantsAPI.modifier(etudiantActif.id, formModif);
+      }
       setModalModifier(false);
+      setPhotoPreview(null);
       charger();
     } catch(err) {
       const errData = err.response?.data;
@@ -126,7 +244,6 @@ const Etudiants = () => {
     if (!formulaire.matricule.trim()) return setErreurForm('Le matricule est requis');
     if (!formulaire.email.trim())     return setErreurForm("L'email est requis");
     if (formulaire.mot_de_passe.length < 8) return setErreurForm('Mot de passe minimum 8 caractères');
-
     setSauvegarde(true); setErreurForm('');
     try {
       const data = {...formulaire};
@@ -144,20 +261,22 @@ const Etudiants = () => {
       const errData = err.response?.data;
       if (typeof errData === 'object') {
         setErreurForm(Object.entries(errData).map(([k,v])=>`${k}: ${Array.isArray(v)?v[0]:v}`).join(' | '));
-      } else {
-        setErreurForm('Erreur lors de la création');
-      }
+      } else { setErreurForm('Erreur lors de la création'); }
     } finally { setSauvegarde(false); }
   };
 
   const colonnes = [
     { key:'matricule',   label:'Matricule' },
+    { key:'photo', label:'Photo', render:(v,r) => (
+      v
+        ? <img src={v} alt="" style={{ width:32,height:32,borderRadius:'50%',objectFit:'cover',border:'2px solid #d1fae5' }} />
+        : <div style={{ width:32,height:32,borderRadius:'50%',background:'#f3f4f6',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14 }}>👤</div>
+    )},
     { key:'nom',         label:'Nom complet', render:(v,r)=>`${r.nom} ${r.prenom}` },
     { key:'filiere_nom', label:'Filière' },
     { key:'niveau',      label:'Niveau' },
     { key:'contact',     label:'Contact' },
-    { key:'statut',      label:'Statut',
-      render: v => <Badge type={couleurStatut(v)}>{v}</Badge> },
+    { key:'statut',      label:'Statut', render: v => <Badge type={couleurStatut(v)}>{v}</Badge> },
   ];
 
   return (
@@ -191,34 +310,123 @@ const Etudiants = () => {
           actions={row => (
             <div style={{ display:'flex', gap:'6px' }}>
               <Bouton variante="ghost" petit onClick={() => voirProfil(row)}>Profil</Bouton>
+              <Bouton variante="ghost" petit onClick={() => voirBadge(row)}>🪪 Badge</Bouton>
               {estAdmin && (
-                <Bouton variante="light" petit onClick={() => ouvrirModification(row)}>✏️ Modifier</Bouton>
+                <Bouton variante="light" petit onClick={() => ouvrirModification(row)}>✏️</Bouton>
               )}
             </div>
           )}
         />
       </Card>
 
+      {/* ══ Modal Badge ══ */}
+      <Modal titre="🪪 Badge Étudiant" visible={modalBadge}
+        onClose={() => { setModalBadge(false); setBadge(null); }} largeur="420px">
+        {badgeLoading ? (
+          <div style={{ textAlign:'center', padding:'40px', color:'#a8a29e' }}>
+            Chargement du badge…
+          </div>
+        ) : badge ? (
+          <div>
+            {/* Aperçu carte badge */}
+            <div style={{
+              background:'linear-gradient(135deg,#064e3b,#047857)',
+              borderRadius:'14px', padding:'0', overflow:'hidden',
+              boxShadow:'0 8px 24px rgba(6,78,59,0.3)', marginBottom:'16px',
+              width:'340px', height:'214px', margin:'0 auto 16px', position:'relative',
+            }}>
+              {/* Header */}
+              <div style={{ padding:'14px 16px 10px', borderBottom:'1px solid rgba(255,255,255,0.15)' }}>
+                <div style={{ color:'#fff', fontWeight:'800', fontSize:'14px', letterSpacing:'1px' }}>
+                  SMARTCAMPUS
+                </div>
+                <div style={{ color:'rgba(255,255,255,0.7)', fontSize:'10px' }}>Carte Étudiant</div>
+              </div>
+              {/* Corps */}
+              <div style={{ display:'flex', gap:'14px', padding:'12px 16px', alignItems:'flex-start' }}>
+                {/* Photo */}
+                <div style={{ width:'60px', height:'60px', borderRadius:'50%',
+                  border:'2px solid rgba(255,255,255,0.5)', overflow:'hidden',
+                  background:'rgba(255,255,255,0.1)', flexShrink:0,
+                  display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  {badge.photo_url
+                    ? <img src={badge.photo_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                    : <span style={{ fontSize:'24px' }}>👤</span>
+                  }
+                </div>
+                {/* Infos */}
+                <div style={{ flex:1 }}>
+                  <div style={{ color:'#fff', fontWeight:'700', fontSize:'15px', marginBottom:'6px' }}>
+                    {badge.nom} {badge.prenom}
+                  </div>
+                  {[
+                    ['Matricule', badge.matricule],
+                    ['Filière',   badge.filiere || '—'],
+                    ['Niveau',    badge.niveau],
+                    ['Année',     badge.annee_scolaire],
+                  ].map(([label, val]) => (
+                    <div key={label} style={{ display:'flex', gap:'6px', marginBottom:'2px' }}>
+                      <span style={{ color:'rgba(255,255,255,0.6)', fontSize:'10px', minWidth:'52px' }}>{label}</span>
+                      <span style={{ color:'#fff', fontSize:'11px', fontWeight:'600' }}>{val}</span>
+                    </div>
+                  ))}
+                </div>
+                {/* QR Code */}
+                {badge.qr_code && (
+                  <div style={{ width:'50px', height:'50px', background:'#fff',
+                    borderRadius:'6px', padding:'3px', flexShrink:0 }}>
+                    <img src={`data:image/png;base64,${badge.qr_code}`}
+                      alt="QR" style={{ width:'100%', height:'100%' }} />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Bouton télécharger */}
+            <div style={{ display:'flex', justifyContent:'center' }}>
+              <Bouton variante="primary" onClick={telechargerBadge}>
+                📥 Télécharger en PDF
+              </Bouton>
+            </div>
+          </div>
+        ) : (
+          <div style={{ textAlign:'center', color:'#ef4444', padding:'30px' }}>
+            Impossible de charger le badge.
+          </div>
+        )}
+      </Modal>
+
       {/* ══ Modal Profil ══ */}
       <Modal titre={`📋 ${etudiantActif?.nom} ${etudiantActif?.prenom}`}
         visible={modalProfil} onClose={() => setModalProfil(false)} largeur="560px">
         {etudiantActif && (
           <div style={{ display:'flex', flexDirection:'column', gap:'14px' }}>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px',
-              background:'#f8fafc', borderRadius:'8px', padding:'16px' }}>
-              {[
-                ['Matricule',    etudiantActif.matricule],
-                ['Filière',      etudiantActif.filiere_nom],
-                ['Niveau',       etudiantActif.niveau],
-                ['Statut',       etudiantActif.statut],
-                ['Contact',      etudiantActif.contact],
-                ['Inscription',  formatDate(etudiantActif.date_inscription)],
-              ].map(([label, val]) => (
-                <div key={label}>
-                  <div style={{ fontSize:'11px', color:'#9ca3af', textTransform:'uppercase', marginBottom:'2px' }}>{label}</div>
-                  <div style={{ fontWeight:'600', color:'#1f2937' }}>{val || '—'}</div>
-                </div>
-              ))}
+            {/* Photo + infos */}
+            <div style={{ display:'flex', gap:'16px', alignItems:'center',
+              background:'#f8fafc', borderRadius:'10px', padding:'16px' }}>
+              <div style={{ width:'64px', height:'64px', borderRadius:'50%',
+                border:'3px solid #d1fae5', overflow:'hidden', flexShrink:0,
+                background:'#f3f4f6', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                {etudiantActif.photo
+                  ? <img src={etudiantActif.photo} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                  : <span style={{ fontSize:'28px' }}>👤</span>
+                }
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px', flex:1 }}>
+                {[
+                  ['Matricule',   etudiantActif.matricule],
+                  ['Filière',     etudiantActif.filiere_nom],
+                  ['Niveau',      etudiantActif.niveau],
+                  ['Statut',      etudiantActif.statut],
+                  ['Contact',     etudiantActif.contact],
+                  ['Inscription', formatDate(etudiantActif.date_inscription)],
+                ].map(([label, val]) => (
+                  <div key={label}>
+                    <div style={{ fontSize:'11px', color:'#9ca3af', textTransform:'uppercase', marginBottom:'2px' }}>{label}</div>
+                    <div style={{ fontWeight:'600', color:'#1f2937', fontSize:'13px' }}>{val || '—'}</div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {profil.presence && (
@@ -241,21 +449,52 @@ const Etudiants = () => {
               </div>
             )}
 
-            {estAdmin && (
-              <div style={{ display:'flex', justifyContent:'flex-end' }}>
+            <div style={{ display:'flex', gap:'8px', justifyContent:'flex-end' }}>
+              <Bouton variante="ghost" onClick={() => { setModalProfil(false); voirBadge(etudiantActif); }}>
+                🪪 Voir badge
+              </Bouton>
+              {estAdmin && (
                 <Bouton variante="primary" onClick={() => ouvrirModification(etudiantActif)}>
-                  ✏️ Modifier les informations
+                  ✏️ Modifier
                 </Bouton>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
       </Modal>
 
       {/* ══ Modal Modifier ══ */}
       <Modal titre={`✏️ Modifier — ${etudiantActif?.nom} ${etudiantActif?.prenom}`}
-        visible={modalModifier} onClose={() => setModalModifier(false)} largeur="640px">
+        visible={modalModifier} onClose={() => { setModalModifier(false); setPhotoPreview(null); }} largeur="640px">
         <form onSubmit={handleModifier}>
+
+          {/* ── Photo de profil ── */}
+          <div style={{ background:'#f0fdf4', borderRadius:'10px', padding:'14px 16px',
+            marginBottom:'16px', display:'flex', alignItems:'center', gap:'16px' }}>
+            <div style={{ width:'72px', height:'72px', borderRadius:'50%',
+              border:'3px solid #6ee7b7', overflow:'hidden', flexShrink:0,
+              background:'#e5e7eb', display:'flex', alignItems:'center', justifyContent:'center',
+              cursor:'pointer' }} onClick={() => photoRef.current?.click()}>
+              {photoPreview
+                ? <img src={photoPreview} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                : <span style={{ fontSize:'28px' }}>👤</span>
+              }
+            </div>
+            <div>
+              <div style={{ fontWeight:'600', fontSize:'13px', color:'#065f46', marginBottom:'6px' }}>
+                📸 Photo de profil
+              </div>
+              <Bouton variante="light" petit onClick={() => photoRef.current?.click()}>
+                {photoPreview ? 'Changer la photo' : 'Ajouter une photo'}
+              </Bouton>
+              <input ref={photoRef} type="file" accept="image/*"
+                style={{ display:'none' }} onChange={handlePhotoChange} />
+              <div style={{ fontSize:'11px', color:'#a8a29e', marginTop:'4px' }}>
+                JPG, PNG — max 2 Mo
+              </div>
+            </div>
+          </div>
+
           <div style={{ background:'#fffbeb', border:'1px solid #fde68a', borderRadius:'10px',
             padding:'12px', marginBottom:'16px', fontSize:'13px', color:'#92400e' }}>
             ℹ️ Le mot de passe ne peut pas être modifié ici pour des raisons de sécurité.
@@ -267,16 +506,13 @@ const Etudiants = () => {
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0 16px' }}>
             <FormField label="Nom" required>
-              <input value={formModif.nom} onChange={e=>champModif('nom',e.target.value)}
-                style={inputStyle} />
+              <input value={formModif.nom} onChange={e=>champModif('nom',e.target.value)} style={inputStyle} />
             </FormField>
             <FormField label="Prénom" required>
-              <input value={formModif.prenom} onChange={e=>champModif('prenom',e.target.value)}
-                style={inputStyle} />
+              <input value={formModif.prenom} onChange={e=>champModif('prenom',e.target.value)} style={inputStyle} />
             </FormField>
             <FormField label="Sexe">
-              <select value={formModif.sexe} onChange={e=>champModif('sexe',e.target.value)}
-                style={selectStyle}>
+              <select value={formModif.sexe} onChange={e=>champModif('sexe',e.target.value)} style={selectStyle}>
                 <option value="M">Masculin</option>
                 <option value="F">Féminin</option>
               </select>
@@ -286,17 +522,14 @@ const Etudiants = () => {
                 placeholder="034 XX XXX XX" style={inputStyle} />
             </FormField>
             <FormField label="Lieu de naissance">
-              <input value={formModif.lieu_naissance} onChange={e=>champModif('lieu_naissance',e.target.value)}
-                style={inputStyle} />
+              <input value={formModif.lieu_naissance} onChange={e=>champModif('lieu_naissance',e.target.value)} style={inputStyle} />
             </FormField>
             <FormField label="Nationalité">
-              <input value={formModif.nationalite} onChange={e=>champModif('nationalite',e.target.value)}
-                style={inputStyle} />
+              <input value={formModif.nationalite} onChange={e=>champModif('nationalite',e.target.value)} style={inputStyle} />
             </FormField>
           </div>
           <FormField label="Adresse">
-            <input value={formModif.adresse} onChange={e=>champModif('adresse',e.target.value)}
-              style={inputStyle} />
+            <input value={formModif.adresse} onChange={e=>champModif('adresse',e.target.value)} style={inputStyle} />
           </FormField>
 
           <div style={{ background:'#fef9f0', borderRadius:'8px', padding:'10px 14px',
@@ -305,21 +538,18 @@ const Etudiants = () => {
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0 16px' }}>
             <FormField label="Filière">
-              <select value={formModif.filiere} onChange={e=>champModif('filiere',e.target.value)}
-                style={selectStyle}>
+              <select value={formModif.filiere} onChange={e=>champModif('filiere',e.target.value)} style={selectStyle}>
                 <option value="">— Choisir —</option>
                 {filieres.map(f=><option key={f.id} value={f.id}>{f.nom}</option>)}
               </select>
             </FormField>
             <FormField label="Niveau">
-              <select value={formModif.niveau} onChange={e=>champModif('niveau',e.target.value)}
-                style={selectStyle}>
+              <select value={formModif.niveau} onChange={e=>champModif('niveau',e.target.value)} style={selectStyle}>
                 {['L1','L2','L3','M1','M2'].map(n=><option key={n} value={n}>{n}</option>)}
               </select>
             </FormField>
             <FormField label="Statut">
-              <select value={formModif.statut} onChange={e=>champModif('statut',e.target.value)}
-                style={selectStyle}>
+              <select value={formModif.statut} onChange={e=>champModif('statut',e.target.value)} style={selectStyle}>
                 <option value="actif">Actif</option>
                 <option value="suspendu">Suspendu</option>
                 <option value="diplome">Diplômé</option>
@@ -327,8 +557,7 @@ const Etudiants = () => {
               </select>
             </FormField>
             <FormField label="Série Bac">
-              <select value={formModif.serie_bacc} onChange={e=>champModif('serie_bacc',e.target.value)}
-                style={selectStyle}>
+              <select value={formModif.serie_bacc} onChange={e=>champModif('serie_bacc',e.target.value)} style={selectStyle}>
                 <option value="">—</option>
                 {['A','C','D','E','F','G','OSE','TI'].map(s=><option key={s} value={s}>{s}</option>)}
               </select>
@@ -337,14 +566,12 @@ const Etudiants = () => {
 
           {erreurForm && (
             <div style={{ background:'#fee2e2', borderRadius:'8px', padding:'10px',
-              color:'#991b1b', fontSize:'13px', marginBottom:'12px' }}>
-              ❌ {erreurForm}
-            </div>
+              color:'#991b1b', fontSize:'13px', marginBottom:'12px' }}>❌ {erreurForm}</div>
           )}
           <div style={{ display:'flex', gap:'10px', justifyContent:'flex-end' }}>
-            <Bouton variante="light" onClick={() => setModalModifier(false)}>Annuler</Bouton>
+            <Bouton variante="light" onClick={() => { setModalModifier(false); setPhotoPreview(null); }}>Annuler</Bouton>
             <Bouton type="submit" variante="primary" disabled={sauvegarde}>
-              {sauvegarde ? '⏳ Sauvegarde...' : '✅ Enregistrer les modifications'}
+              {sauvegarde ? '⏳ Sauvegarde...' : '✅ Enregistrer'}
             </Bouton>
           </div>
         </form>
@@ -368,7 +595,6 @@ const Etudiants = () => {
                 style={inputStyle} />
             </FormField>
           </div>
-
           <div style={{ background:'#f0fdf4', borderRadius:'8px', padding:'10px 14px',
             marginBottom:'16px', fontSize:'13px', color:'#166534', fontWeight:'600' }}>
             👤 Informations personnelles
@@ -390,7 +616,6 @@ const Etudiants = () => {
                 placeholder="034 XX XXX XX" style={inputStyle} />
             </FormField>
           </div>
-
           <div style={{ background:'#fef9f0', borderRadius:'8px', padding:'10px 14px',
             marginBottom:'16px', fontSize:'13px', color:'#92400e', fontWeight:'600' }}>
             🎓 Informations académiques
@@ -418,7 +643,6 @@ const Etudiants = () => {
               </select>
             </FormField>
           </div>
-
           {erreurForm && (
             <div style={{ background:'#fee2e2', borderRadius:'8px', padding:'10px',
               color:'#991b1b', fontSize:'13px', marginBottom:'12px' }}>❌ {erreurForm}</div>
@@ -426,7 +650,7 @@ const Etudiants = () => {
           <div style={{ display:'flex', gap:'10px', justifyContent:'flex-end' }}>
             <Bouton variante="light" onClick={() => { setModalOuvert(false); setErreurForm(''); }}>Annuler</Bouton>
             <Bouton type="submit" variante="primary" disabled={sauvegarde}>
-              {sauvegarde ? '⏳ Création...' : '✅ Créer l\'étudiant'}
+              {sauvegarde ? '⏳ Création...' : "✅ Créer l'étudiant"}
             </Bouton>
           </div>
         </form>
@@ -434,4 +658,5 @@ const Etudiants = () => {
     </Layout>
   );
 };
+
 export default Etudiants;
