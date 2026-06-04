@@ -17,69 +17,97 @@ const selectStyle = {
 
 // ── Génération du badge PDF côté client ──────
 const genererBadgePDF = async (badge) => {
-  // Utilise jsPDF via CDN (déjà dans index.html) ou import dynamique
   const { jsPDF } = await import('jspdf');
-  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:[86,54] }); // taille carte
+  const QRCode = await import('qrcode');
 
-  // Fond dégradé simulé
-  doc.setFillColor(6, 78, 59); // vert foncé
-  doc.rect(0, 0, 86, 20, 'F');
+  // Générer QR code en base64
+  const qrDataUrl = await QRCode.toDataURL(badge.matricule, {
+    width: 120, margin: 1,
+    color: { dark: '#064e3b', light: '#ffffff' }
+  });
 
-  // Logo / titre université
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(9);
-  doc.setFont('helvetica','bold');
-  doc.text('SMARTCAMPUS', 43, 8, { align:'center' });
-  doc.setFontSize(7);
-  doc.setFont('helvetica','normal');
-  doc.text('Carte Étudiant', 43, 13, { align:'center' });
+  // Format carte bancaire : 85.6 x 54 mm
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [85.6, 54] });
 
-  // Photo de profil
+  // ── Fond vert foncé header ──
+  doc.setFillColor(6, 78, 59);
+  doc.rect(0, 0, 85.6, 16, 'F');
+
+  // ── Titre ──
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('SMARTCAMPUS', 42.8, 7, { align: 'center' });
+  doc.setFontSize(6);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Carte Étudiant', 42.8, 12, { align: 'center' });
+
+  // ── Fond blanc corps ──
+  doc.setFillColor(240, 253, 244);
+  doc.rect(0, 16, 85.6, 38, 'F');
+
+  // ── Photo ou placeholder ──
   if (badge.photo_url) {
     try {
-      doc.addImage(badge.photo_url, 'JPEG', 3, 22, 18, 22);
+      doc.addImage(badge.photo_url, 'JPEG', 3, 19, 16, 18);
     } catch(e) {
-      // Photo non disponible — cercle placeholder
-      doc.setFillColor(229,231,235);
-      doc.circle(12, 33, 9, 'F');
-      doc.setTextColor(156,163,175);
-      doc.setFontSize(14);
-      doc.text('?', 12, 36, { align:'center' });
+      doc.setFillColor(209, 250, 229);
+      doc.roundedRect(3, 19, 16, 18, 2, 2, 'F');
+      doc.setTextColor(6, 78, 59);
+      doc.setFontSize(16);
+      doc.text('👤', 5, 31);
     }
   } else {
-    doc.setFillColor(229,231,235);
-    doc.circle(12, 33, 9, 'F');
-    doc.setTextColor(156,163,175);
-    doc.setFontSize(14);
-    doc.text('👤', 10, 37);
+    doc.setFillColor(209, 250, 229);
+    doc.roundedRect(3, 19, 16, 18, 2, 2, 'F');
+    doc.setTextColor(100, 116, 139);
+    doc.setFontSize(7);
+    doc.text('PHOTO', 11, 29, { align: 'center' });
   }
 
-  // Infos étudiant
-  doc.setTextColor(17,24,39);
-  doc.setFontSize(11);
-  doc.setFont('helvetica','bold');
-  doc.text(`${badge.nom} ${badge.prenom}`, 25, 26);
+  // ── Nom étudiant ──
+  doc.setTextColor(6, 78, 59);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  const nomComplet = `${badge.nom} ${badge.prenom}`;
+  doc.text(nomComplet.substring(0, 22), 22, 23);
 
-  doc.setFontSize(8);
-  doc.setFont('helvetica','normal');
-  doc.setTextColor(75,85,99);
-  doc.text(`Matricule : ${badge.matricule}`,          25, 32);
-  doc.text(`Filière   : ${badge.filiere || '—'}`,     25, 37);
-  doc.text(`Niveau    : ${badge.niveau}`,             25, 42);
-  doc.text(`Année     : ${badge.annee_scolaire}`,     25, 47);
+  // ── Infos ──
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(51, 65, 85);
+  const infos = [
+    ['Matricule', badge.matricule],
+    ['Filière',   badge.filiere || '—'],
+    ['Niveau',    badge.niveau],
+    ['Année',     badge.annee_scolaire],
+  ];
+  infos.forEach(([label, val], i) => {
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(100, 116, 139);
+    doc.text(label, 22, 29 + i * 5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(15, 23, 42);
+    doc.text(String(val), 40, 29 + i * 5);
+  });
 
-  // QR Code
-  if (badge.qr_code) {
-    try {
-      const qrSrc = `data:image/png;base64,${badge.qr_code}`;
-      doc.addImage(qrSrc, 'PNG', 68, 22, 16, 16);
-    } catch(e) {}
-  }
+  // ── QR Code ──
+  doc.addImage(qrDataUrl, 'PNG', 65, 19, 18, 18);
 
-  // Bordure
-  doc.setDrawColor(6,78,59);
+  // ── Ligne séparatrice bas ──
+  doc.setDrawColor(6, 78, 59);
+  doc.setLineWidth(0.3);
+  doc.line(3, 50, 82.6, 50);
+
+  // ── Texte bas ──
+  doc.setTextColor(100, 116, 139);
+  doc.setFontSize(5);
+  doc.text('Université SmartCampus — Document officiel', 42.8, 53, { align: 'center' });
+
+  // ── Bordure ──
+  doc.setDrawColor(6, 78, 59);
   doc.setLineWidth(0.5);
-  doc.rect(0.5, 0.5, 85, 53, 'S');
+  doc.roundedRect(0.5, 0.5, 84.6, 53, 2, 2, 'S');
 
   doc.save(`badge_${badge.matricule}.pdf`);
 };
