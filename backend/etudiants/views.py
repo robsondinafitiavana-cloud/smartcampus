@@ -2,6 +2,8 @@
 etudiants/views.py - Module 1 & 2
 CRUD Étudiants, Enseignants, Groupes, Filières
 """
+from django.http import HttpResponse
+import base64, io
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -94,6 +96,37 @@ class EtudiantViewSet(viewsets.ModelViewSet):
             "alerte":            alerte,
             "message": "⚠️ Taux insuffisant!" if alerte else "✅ Présence correcte"
         })
+    @action(detail=True, methods=['get'])
+    def badge(self, request, pk=None):
+        etudiant = self.get_object()
+        # Générer QR Code si pas encore fait
+        if not etudiant.qr_code:
+            import qrcode
+            qr = qrcode.QRCode(version=1, box_size=10, border=4)
+            qr.add_data(etudiant.matricule)
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="black", back_color="white")
+            buffer = io.BytesIO()
+            img.save(buffer, format='PNG')
+            etudiant.qr_code = base64.b64encode(buffer.getvalue()).decode()
+            etudiant.save()
+
+        # Retourner les données du badge
+        photo_url = None
+        if etudiant.photo:
+           photo_url = request.build_absolute_uri(etudiant.photo.url)
+
+        return Response({
+            "matricule": etudiant.matricule,
+            "nom": etudiant.nom,
+            "prenom": etudiant.prenom,
+            "filiere": etudiant.filiere.nom if etudiant.filiere else "",
+            "niveau": etudiant.niveau,
+            "annee_scolaire": etudiant.annee_scolaire,
+            "qr_code": etudiant.qr_code,
+            "photo_url": photo_url,
+        })
+    
 
     @action(detail=True, methods=['get'])
     def situation_financiere(self, request, pk=None):
@@ -107,6 +140,8 @@ class EtudiantViewSet(viewsets.ModelViewSet):
             "peut_passer_examen": total_du == 0,
             "message": "❌ Paiement requis" if total_du > 0 else "✅ Paiements à jour"
         })
+
+
 
 
 class EnseignantViewSet(viewsets.ModelViewSet):
