@@ -81,16 +81,15 @@ class Etudiant(models.Model):
         return f"{self.matricule} - {self.nom} {self.prenom}"
    
     def save(self, *args, **kwargs):
-    if not self.qr_code and self.matricule:
-        # Générer QR Code automatiquement
-        qr = qrcode.QRCode(version=1, box_size=10, border=4)
-        qr.add_data(self.matricule)
-        qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white")
-        buffer = BytesIO()
-        img.save(buffer, format='PNG')
-        self.qr_code = base64.b64encode(buffer.getvalue()).decode()
-    super().save(*args, **kwargs)
+        if not self.qr_code and self.matricule:
+            qr = qrcode.QRCode(version=1, box_size=10, border=4)
+            qr.add_data(self.matricule)
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="black", back_color="white")
+            buffer = BytesIO()
+            img.save(buffer, format='PNG')
+            self.qr_code = base64.b64encode(buffer.getvalue()).decode()
+        super().save(*args, **kwargs)
     @property
     def nom_complet(self):
         return f"{self.nom} {self.prenom}"
