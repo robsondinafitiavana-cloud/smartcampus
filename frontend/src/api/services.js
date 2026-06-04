@@ -263,4 +263,11 @@ export const communiquesAPI = {
   /** Supprimer un commentaire */
   supprimerCommentaire: (communiqueId, commentaireId) =>
     api.delete(`/communiques/${communiqueId}/commentaire/${commentaireId}/`),
+    /** Badge étudiant (données pour PDF) */
+  getBadge: (id) => api.get(`/etudiants/${id}/badge/`),
+  
+  /** Upload photo de profil */
+  uploadPhoto: (id, formData) => api.patch(`/etudiants/${id}/`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+}),
 };
