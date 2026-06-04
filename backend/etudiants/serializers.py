@@ -16,7 +16,9 @@ class EtudiantSerializer(serializers.ModelSerializer):
     class Meta:
         model  = Etudiant
         fields = '__all__'
-
+        extra_kwargs = {
+            'photo': {'required': False},
+        }
 
 class EnseignantSerializer(serializers.ModelSerializer):
     class Meta:
@@ -41,10 +43,9 @@ class EtudiantCreationSerializer(serializers.ModelSerializer):
         model   = Etudiant
         exclude = ['utilisateur', 'qr_code']
         extra_kwargs = {
-            # Rendre annee_scolaire optionnel avec valeur par défaut
             'annee_scolaire': {'required': False},
-            # filiere optionnel
             'filiere': {'required': False, 'allow_null': True},
+            'photo': {'required': False},
         }
 
     def validate(self, data):
