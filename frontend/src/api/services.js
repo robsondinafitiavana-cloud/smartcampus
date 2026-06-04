@@ -228,6 +228,10 @@ export const devoirsAPI = {
 export const admissionIAAPI = {
   testerAdmission: (data) => api.post('/demandes/tester_admission/', data),
   getResultat:     (id)   => api.get(`/demandes/${id}/resultat_ia/`),
+  genererQuestions: (filiere, nb_questions, candidat_id) =>
+    api.post('/ia/admission/generer/', { filiere, nb_questions, candidat_id }),
+  evaluer: (candidat_id, filiere, session_token, reponses) =>
+    api.post('/ia/admission/evaluer/', { candidat_id, filiere, session_token, reponses }),
 };
 
 export const communiquesAPI = {
