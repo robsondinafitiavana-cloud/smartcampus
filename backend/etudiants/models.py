@@ -3,9 +3,12 @@ etudiants/models.py
 Module 1 : Gestion des Étudiants (cycle complet)
 Module 2 : Gestion des Enseignants
 """
+
 from django.db import models
 from users.models import Utilisateur
-
+import qrcode
+import base64
+from io import BytesIO
 
 class Filiere(models.Model):
     """Filières disponibles : Informatique, Gestion, Droit..."""
@@ -76,7 +79,18 @@ class Etudiant(models.Model):
 
     def __str__(self):
         return f"{self.matricule} - {self.nom} {self.prenom}"
-
+   
+    def save(self, *args, **kwargs):
+    if not self.qr_code and self.matricule:
+        # Générer QR Code automatiquement
+        qr = qrcode.QRCode(version=1, box_size=10, border=4)
+        qr.add_data(self.matricule)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        buffer = BytesIO()
+        img.save(buffer, format='PNG')
+        self.qr_code = base64.b64encode(buffer.getvalue()).decode()
+    super().save(*args, **kwargs)
     @property
     def nom_complet(self):
         return f"{self.nom} {self.prenom}"
