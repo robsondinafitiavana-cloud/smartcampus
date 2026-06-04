@@ -1,10 +1,12 @@
 # SmartCampus - Dépendances Python
-# Installation: pip install -r requirements.txt
-
 Django==5.0.6
 djangorestframework==3.15.2
 djangorestframework-simplejwt==5.3.1
 psycopg2-binary==2.9.9
+psycopg[binary]==3.2.3
 django-cors-headers==4.4.0
 Pillow==10.4.0
+gunicorn==21.2.0
+dj-database-url==2.1.0
+whitenoise==6.7.0
 requests==2.31.0
