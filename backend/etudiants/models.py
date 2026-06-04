@@ -62,6 +62,13 @@ class Etudiant(models.Model):
     # QR Code pour scan de présence
     qr_code       = models.TextField(unique=True, blank=True, null=True)
 
+    # Photo de profil
+    photo = models.ImageField(
+    upload_to='photos_etudiants/',
+    null=True,
+    blank=True
+    )
+
     date_inscription = models.DateTimeField(auto_now_add=True)
 
     class Meta:
