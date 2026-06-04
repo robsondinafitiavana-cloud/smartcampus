@@ -26,6 +26,8 @@ INSTALLED_APPS = [
     'presences',
     'paiements',
     'planning',
+    'devoirs',
+    'ia',
 ]
 
 MIDDLEWARE = [
