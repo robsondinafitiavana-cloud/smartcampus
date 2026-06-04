@@ -173,6 +173,63 @@ export const echeancierAPI = {
 // ══════════════════════════════════════════════════════════════
 // NOUVEAU : Communiqués (admin publie, tous lisent + like + commentaire)
 // ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+// MODULE 8 — Devoirs & Travaux de Groupe
+// ══════════════════════════════════════════════════════════════
+export const devoirsAPI = {
+  // Devoirs
+  kanban:             (params={}) => api.get('/devoirs/kanban/', { params }),
+  getListe:           (params={}) => api.get('/devoirs/', { params }),
+  getUn:              (id)        => api.get(`/devoirs/${id}/`),
+  creer:              (data)      => api.post('/devoirs/', data),
+  modifier:           (id, data)  => api.patch(`/devoirs/${id}/`, data),
+  supprimer:          (id)        => api.delete(`/devoirs/${id}/`),
+  publier:            (id)        => api.post(`/devoirs/${id}/publier/`),
+  cloturer:           (id)        => api.post(`/devoirs/${id}/cloturer/`),
+  statistiques:       (id)        => api.get(`/devoirs/${id}/statistiques/`),
+  creerGroupesAuto:   (id)        => api.post(`/devoirs/${id}/creer_groupes_auto/`),
+  plagiatGlobal:      (id)        => api.get(`/devoirs/${id}/plagiat_global/`),
+
+  // Groupes de travail
+  getGroupes:         (params={}) => api.get('/groupes-travail/', { params }),
+  getGroupe:          (id)        => api.get(`/groupes-travail/${id}/`),
+  creerGroupe:        (data)      => api.post('/groupes-travail/', data),
+  mesGroupes:         ()          => api.get('/groupes-travail/mes_groupes/'),
+  rejoindreGroupe:    (id)        => api.post(`/groupes-travail/${id}/rejoindre/`),
+  quitterGroupe:      (id)        => api.post(`/groupes-travail/${id}/quitter/`),
+  getMessages:        (id)        => api.get(`/groupes-travail/${id}/messages/`),
+  envoyerMessage:     (id, contenu) => api.post(`/groupes-travail/${id}/envoyer_message/`, { contenu }),
+  getFichiers:        (id)        => api.get(`/groupes-travail/${id}/fichiers/`),
+  partagerFichier:    (id, form)  => api.post(`/groupes-travail/${id}/partager_fichier/`, form, { headers:{ 'Content-Type':'multipart/form-data' } }),
+  getContributions:   (id)        => api.get(`/groupes-travail/${id}/contributions/`),
+
+  // Soumissions
+  getSoumissions:     (params={}) => api.get('/soumissions/', { params }),
+  soumettre:          (form)      => api.post('/soumissions/', form, { headers:{ 'Content-Type':'multipart/form-data' } }),
+  mesSoumissions:     ()          => api.get('/soumissions/mes_soumissions/'),
+  corriger:           (id, data)  => api.post(`/soumissions/${id}/corriger/`, data),
+  lancerPlagiat:      (id)        => api.post(`/soumissions/${id}/lancer_plagiat/`),
+
+  // Calendrier
+  getCalendrier:      (params={}) => api.get('/calendrier/', { params }),
+  creerEvenement:     (data)      => api.post('/calendrier/', data),
+
+  // Notifications
+  getNotifications:   ()          => api.get('/notifications/'),
+  getNonLues:         ()          => api.get('/notifications/non_lues/'),
+  marquerLu:          (ids=[])    => api.post('/notifications/marquer_lu/', { ids }),
+
+  // Badges
+  getCatalogue:       ()          => api.get('/badges/'),
+  mesBadges:          ()          => api.get('/badges/mes_badges/'),
+  classement:         ()          => api.get('/badges/classement/'),
+};
+
+export const admissionIAAPI = {
+  testerAdmission: (data) => api.post('/demandes/tester_admission/', data),
+  getResultat:     (id)   => api.get(`/demandes/${id}/resultat_ia/`),
+};
+
 export const communiquesAPI = {
   /** Liste des communiqués */
   getListe: (params={}) => api.get('/communiques/', { params }),

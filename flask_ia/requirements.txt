@@ -1,0 +1,12 @@
+# SmartCampus Flask IA - Dépendances
+# Installation: pip install -r requirements.txt
+
+flask==3.0.3
+flask-cors==4.0.1
+scikit-learn==1.4.2
+numpy==1.26.4
+Pillow==10.3.0
+gunicorn==22.0.0
+python-dotenv==1.0.1
+# face_recognition==1.3.0  # Décommenter si dlib installé
+# PyJWT==2.8.0              # Optionnel

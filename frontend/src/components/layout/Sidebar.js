@@ -5,47 +5,51 @@ import { useAuth } from '../../context/AuthContext';
 const MENUS = {
   admin: [
     { section:'PRINCIPAL', items:[
-      { path:'/dashboard',   label:"Vue d'ensemble",   icone:'📊' },
+      { path:'/dashboard',   label:"Vue d'ensemble",       icone:'📊' },
+      { path:'/demandes',    label:'Demandes inscription',  icone:'📋' },
     ]},
     { section:'ACADÉMIQUE', items:[
-      { path:'/etudiants',   label:'Étudiants',         icone:'🎓' },
-      { path:'/enseignants', label:'Enseignants',       icone:'👤' },
-      { path:'/cours',       label:'Cours',             icone:'📖' },
-      { path:'/notes',       label:'Notes & Bulletins', icone:'📋' },
-      { path:'/presences',   label:'Présences',         icone:'✅' },
-      { path:'/planning',    label:'Planning',          icone:'📅' },
+      { path:'/etudiants',   label:'Étudiants',             icone:'🎓' },
+      { path:'/enseignants', label:'Enseignants',           icone:'👤' },
+      { path:'/cours',       label:'Cours',                 icone:'📖' },
+      { path:'/notes',       label:'Notes & Bulletins',     icone:'📝' },
+      { path:'/presences',   label:'Présences',             icone:'✅' },
+      { path:'/planning',    label:'Planning',              icone:'📅' },
+      { path:'/devoirs',     label:'Devoirs & Groupes',     icone:'📚' },
     ]},
     { section:'FINANCE', items:[
-      { path:'/paiements',   label:'Paiements',         icone:'💳' },
+      { path:'/paiements',   label:'Paiements',             icone:'💳' },
     ]},
     { section:'COMMUNICATION', items:[
-      { path:'/communiques', label:'Communiqués',       icone:'📢' },
+      { path:'/communiques', label:'Communiqués',           icone:'📢' },
     ]},
   ],
   enseignant: [
     { section:'MON ESPACE', items:[
-      { path:'/dashboard',   label:"Vue d'ensemble",    icone:'📊' },
+      { path:'/dashboard',   label:"Vue d'ensemble",        icone:'📊' },
     ]},
     { section:'ACADÉMIQUE', items:[
-      { path:'/cours',       label:'Mes cours',         icone:'📖' },
-      { path:'/notes',       label:'Saisie des notes',  icone:'📋' },
-      { path:'/presences',   label:'Présences',         icone:'✅' },
-      { path:'/planning',    label:'Planning',          icone:'📅' },
+      { path:'/cours',       label:'Mes cours',             icone:'📖' },
+      { path:'/notes',       label:'Saisie des notes',      icone:'📝' },
+      { path:'/presences',   label:'Présences',             icone:'✅' },
+      { path:'/planning',    label:'Planning',              icone:'📅' },
+      { path:'/devoirs',     label:'Devoirs & Groupes',     icone:'📚' },
     ]},
     { section:'COMMUNICATION', items:[
-      { path:'/communiques', label:'Communiqués',       icone:'📢' },
+      { path:'/communiques', label:'Communiqués',           icone:'📢' },
     ]},
   ],
   etudiant: [
     { section:'MON ESPACE', items:[
-      { path:'/dashboard',   label:'Mon tableau de bord', icone:'📊' },
-      { path:'/notes',       label:'Mes notes',           icone:'📋' },
-      { path:'/presences',   label:'Mes présences',       icone:'✅' },
-      { path:'/planning',    label:'Mon planning',        icone:'📅' },
-      { path:'/paiements',   label:'Mes paiements',       icone:'💳' },
+      { path:'/dashboard',   label:'Mon tableau de bord',   icone:'📊' },
+      { path:'/notes',       label:'Mes notes',             icone:'📝' },
+      { path:'/presences',   label:'Mes présences',         icone:'✅' },
+      { path:'/planning',    label:'Mon planning',          icone:'📅' },
+      { path:'/paiements',   label:'Mes paiements',         icone:'💳' },
+      { path:'/devoirs',     label:'Mes devoirs',           icone:'📚' },
     ]},
     { section:'COMMUNICATION', items:[
-      { path:'/communiques', label:'Communiqués',         icone:'📢' },
+      { path:'/communiques', label:'Communiqués',           icone:'📢' },
     ]},
   ],
 };
