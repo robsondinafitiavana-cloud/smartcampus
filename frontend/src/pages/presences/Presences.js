@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../../components/Layout';   // ← Important pour garder le sidebar
 
 const Presences = () => {
   const [presences, setPresences] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [modalQR, setModalQR] = useState(false);
   const [qrCode, setQrCode] = useState('');
   const [message, setMessage] = useState(null);
@@ -15,23 +13,19 @@ const Presences = () => {
   ];
 
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      setPresences([
-        { matricule: 'ETU2025001', nom: 'RAKOTO Jean', heure_entree: '07:58', statut: 'present', methode: 'QR Code' },
-        { matricule: 'ETU2025002', nom: 'RAHARISOA Fiti', heure_entree: '08:05', statut: 'present', methode: 'Facial' },
-        { matricule: 'ETU2025003', nom: 'ANDRIANARIVO Sarah', heure_entree: '08:12', statut: 'retard', methode: 'Manuel' },
-        { matricule: 'ETU2025004', nom: 'RAKOTOMALALA Thierry', heure_entree: '', statut: 'absent', methode: '' },
-      ]);
-      setLoading(false);
-    }, 600);
+    setPresences([
+      { matricule: 'ETU2025001', nom: 'RAKOTO Jean', heure_entree: '07:58', statut: 'present', methode: 'QR Code' },
+      { matricule: 'ETU2025002', nom: 'RAHARISOA Fiti', heure_entree: '08:05', statut: 'present', methode: 'Facial' },
+      { matricule: 'ETU2025003', nom: 'ANDRIANARIVO Sarah', heure_entree: '08:12', statut: 'retard', methode: 'Manuel' },
+      { matricule: 'ETU2025004', nom: 'RAKOTOMALALA Thierry', heure_entree: '', statut: 'absent', methode: '' },
+    ]);
   }, [selectedCours]);
 
   const handlePointage = (e) => {
     e.preventDefault();
-    if (!qrCode.trim()) return;
+    if (!qrCode) return;
 
-    setMessage({ type: 'success', texte: `✅ ${qrCode} pointé avec succès !` });
+    setMessage(`✅ Étudiant ${qrCode} pointé avec succès !`);
 
     setTimeout(() => {
       setPresences(prev => [{
@@ -44,190 +38,129 @@ const Presences = () => {
       setQrCode('');
       setMessage(null);
       setModalQR(false);
-    }, 700);
+    }, 600);
   };
 
   const presents = presences.filter(p => p.statut === 'present').length;
   const taux = presences.length ? Math.round((presents / presences.length) * 100) : 0;
 
   return (
-    <Layout titre="Gestion des Présences">
-      <div style={{ padding: '10px 0' }}>
-        {/* Bouton Retour Dashboard */}
+    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ marginBottom: '20px' }}>
         <button 
           onClick={() => window.history.back()}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 16px',
-            background: '#f1f5f9',
-            border: 'none',
-            borderRadius: '8px',
-            marginBottom: '20px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}
+          style={{ padding: '8px 16px', background: '#e2e8f0', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
         >
           ← Retour au Dashboard
         </button>
+      </div>
 
-        <h1 style={{ color: '#064e3b', marginBottom: '8px' }}>📍 Gestion des Présences</h1>
-        <p style={{ color: '#666', marginBottom: '24px' }}>Module 4 — QR Code + Reconnaissance Faciale</p>
+      <h1 style={{ color: '#064e3b' }}>📍 Gestion des Présences</h1>
+      <p style={{ color: '#666', marginBottom: '30px' }}>Module 4 — QR Code + Reconnaissance Faciale</p>
 
-        {/* Cours du jour */}
-        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '24px' }}>
-          {coursDuJour.map(c => (
-            <div
-              key={c.id}
-              onClick={() => setSelectedCours(c)}
-              style={{
-                padding: '16px 20px',
-                border: selectedCours?.id === c.id ? '2px solid #10b981' : '1px solid #e2e8f0',
-                borderRadius: '12px',
-                background: selectedCours?.id === c.id ? '#f0fdf4' : 'white',
-                cursor: 'pointer',
-                minWidth: '280px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-              }}
-            >
-              <strong>{c.code}</strong> — {c.nom}<br />
-              <small style={{ color: '#64748b' }}>{c.heure} | {c.salle}</small>
-            </div>
-          ))}
-        </div>
-
-        {/* Statistiques */}
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
-          <div style={{ background: '#ecfdf5', padding: '20px', borderRadius: '12px', flex: 1, minWidth: '200px' }}>
-            <div style={{ fontSize: '36px', fontWeight: '700', color: '#10b981' }}>{taux}%</div>
-            <div style={{ fontSize: '15px' }}>Taux de présence aujourd'hui</div>
-          </div>
-          <div style={{ background: '#f0fdf4', padding: '20px', borderRadius: '12px', flex: 1, minWidth: '200px' }}>
-            <div style={{ fontSize: '36px', fontWeight: '700', color: '#10b981' }}>{presents}</div>
-            <div style={{ fontSize: '15px' }}>Étudiants présents</div>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div style={{ marginBottom: '24px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => setModalQR(true)}
+      {/* Cours */}
+      <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginBottom: '30px' }}>
+        {coursDuJour.map(c => (
+          <div
+            key={c.id}
+            onClick={() => setSelectedCours(c)}
             style={{
-              padding: '12px 28px',
-              background: '#10b981',
-              color: 'white',
-              border: 'none',
+              padding: '16px',
+              border: selectedCours?.id === c.id ? '2px solid #10b981' : '1px solid #ccc',
               borderRadius: '10px',
-              fontWeight: '600',
+              background: selectedCours?.id === c.id ? '#f0fdf4' : 'white',
               cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
+              minWidth: '260px'
             }}
           >
-            📱 Scanner QR Code
-          </button>
-          <button
-            onClick={() => alert("👤 Reconnaissance faciale OpenCV en cours d'intégration...")}
-            style={{
-              padding: '12px 28px',
-              background: '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '10px',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
-            👤 Reconnaissance Faciale
-          </button>
-        </div>
-
-        {/* Tableau des présences */}
-        <div style={{ background: 'white', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.07)' }}>
-          <div style={{ padding: '18px 20px', background: '#f8fafc', fontWeight: '600', borderBottom: '1px solid #e2e8f0' }}>
-            {selectedCours ? `${selectedCours.code} — ${selectedCours.nom}` : 'Sélectionnez un cours ci-dessus'}
+            <strong>{c.code}</strong> — {c.nom}<br />
+            <small>{c.heure} | {c.salle}</small>
           </div>
+        ))}
+      </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ background: '#f1f5f9' }}>
-                <th style={{ padding: '14px', textAlign: 'left' }}>Matricule</th>
-                <th style={{ padding: '14px', textAlign: 'left' }}>Nom & Prénom</th>
-                <th style={{ padding: '14px', textAlign: 'left' }}>Heure Entrée</th>
-                <th style={{ padding: '14px', textAlign: 'left' }}>Statut</th>
-                <th style={{ padding: '14px', textAlign: 'left' }}>Méthode</th>
-              </tr>
-            </thead>
-            <tbody>
-              {presences.map((p, index) => (
-                <tr key={index} style={{ borderTop: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '14px' }}>{p.matricule}</td>
-                  <td style={{ padding: '14px' }}>{p.nom}</td>
-                  <td style={{ padding: '14px' }}>{p.heure_entree || '—'}</td>
-                  <td style={{ padding: '14px' }}>
-                    <span style={{
-                      padding: '6px 14px',
-                      borderRadius: '9999px',
-                      fontSize: '13px',
-                      background: p.statut === 'present' ? '#d1fae5' : p.statut === 'retard' ? '#fef3c7' : '#fee2e2',
-                      color: p.statut === 'present' ? '#065f46' : p.statut === 'retard' ? '#92400e' : '#991b1b'
-                    }}>
-                      {p.statut === 'present' ? '✅ Présent' : p.statut === 'retard' ? '⏰ Retard' : '❌ Absent'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '14px' }}>{p.methode || '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Stats */}
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
+        <div style={{ background: '#ecfdf5', padding: '20px', borderRadius: '12px', flex: 1 }}>
+          <h2 style={{ margin: 0, color: '#10b981' }}>{taux}%</h2>
+          <p>Taux de présence</p>
+        </div>
+        <div style={{ background: '#f0fdf4', padding: '20px', borderRadius: '12px', flex: 1 }}>
+          <h2 style={{ margin: 0 }}>{presents} / {presences.length}</h2>
+          <p>Présents</p>
         </div>
       </div>
 
-      {/* Modal QR Code */}
+      {/* Boutons */}
+      <div style={{ marginBottom: '25px' }}>
+        <button
+          onClick={() => setModalQR(true)}
+          style={{ padding: '12px 24px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', marginRight: '10px', cursor: 'pointer' }}
+        >
+          📱 Scanner QR Code
+        </button>
+        <button
+          onClick={() => alert("Reconnaissance faciale (OpenCV) simulée")}
+          style={{ padding: '12px 24px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+        >
+          👤 Reconnaissance Faciale
+        </button>
+      </div>
+
+      {/* Tableau */}
+      <table style={{ width: '100%', borderCollapse: 'collapse', background: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+        <thead>
+          <tr style={{ background: '#f8fafc' }}>
+            <th style={{ padding: '14px', textAlign: 'left' }}>Matricule</th>
+            <th style={{ padding: '14px', textAlign: 'left' }}>Nom</th>
+            <th style={{ padding: '14px', textAlign: 'left' }}>Heure Entrée</th>
+            <th style={{ padding: '14px', textAlign: 'left' }}>Statut</th>
+            <th style={{ padding: '14px', textAlign: 'left' }}>Méthode</th>
+          </tr>
+        </thead>
+        <tbody>
+          {presences.map((p, i) => (
+            <tr key={i} style={{ borderTop: '1px solid #eee' }}>
+              <td style={{ padding: '14px' }}>{p.matricule}</td>
+              <td style={{ padding: '14px' }}>{p.nom}</td>
+              <td style={{ padding: '14px' }}>{p.heure_entree || '—'}</td>
+              <td style={{ padding: '14px' }}>
+                <span style={{
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  background: p.statut === 'present' ? '#d1fae5' : '#fee2e2',
+                  color: p.statut === 'present' ? '#065f46' : '#991b1b'
+                }}>
+                  {p.statut === 'present' ? '✅ Présent' : '❌ Absent'}
+                </span>
+              </td>
+              <td style={{ padding: '14px' }}>{p.methode}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Modal QR */}
       {modalQR && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000
-        }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '420px' }}>
-            <h3 style={{ marginBottom: '8px' }}>📲 Pointage par QR Code</h3>
-            <p style={{ color: '#64748b', marginBottom: '20px' }}>Saisir le matricule de l'étudiant</p>
-
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '400px' }}>
+            <h3>Scanner QR Code</h3>
             <input
-              autoFocus
               value={qrCode}
-              onChange={(e) => setQrCode(e.target.value)}
+              onChange={e => setQrCode(e.target.value)}
               placeholder="ETU2025001"
-              style={{
-                width: '100%', padding: '16px', fontSize: '18px',
-                border: '2px solid #10b981', borderRadius: '10px', marginBottom: '20px'
-              }}
+              style={{ width: '100%', padding: '14px', margin: '15px 0', fontSize: '17px' }}
+              autoFocus
             />
-
-            {message && <div style={{ padding: '12px', background: '#d1fae5', borderRadius: '8px', marginBottom: '16px' }}>{message.texte}</div>}
-
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => setModalQR(false)} style={{ flex: 1, padding: '12px', borderRadius: '10px', border: '1px solid #cbd5e1' }}>
-                Annuler
-              </button>
-              <button 
-                onClick={handlePointage}
-                disabled={!qrCode.trim()}
-                style={{ 
-                  flex: 1, padding: '12px', borderRadius: '10px', 
-                  background: qrCode.trim() ? '#10b981' : '#94a3b8', 
-                  color: 'white', border: 'none', fontWeight: '600' 
-                }}
-              >
-                Valider Présence
-              </button>
+            {message && <p style={{ color: 'green' }}>{message}</p>}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setModalQR(false)} style={{ flex: 1, padding: '12px' }}>Annuler</button>
+              <button onClick={handlePointage} style={{ flex: 1, padding: '12px', background: '#10b981', color: 'white', border: 'none' }}>Valider</button>
             </div>
           </div>
         </div>
       )}
-    </Layout>
+    </div>
   );
 };
 
